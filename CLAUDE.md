@@ -21,14 +21,29 @@ app/
 │   └── health.py           # GET /health
 ├── services/
 │   └── alpaca_client.py    # All Alpaca Market Data API calls live here
+├── db.py                  # async engine, get_session dependency, Render URL normalization
+├── models.py              # SQLAlchemy models: User, AuthIdentity
 └── schemas.py             # Pydantic response models
+alembic/                   # migrations; env.py reads DATABASE_URL via app/config.py
 tests/
-└── test_feed.py, test_health.py
+└── test_feed.py, test_health.py, test_db.py
 ```
 
-Auth adds `db.py`, `models.py`, `auth/`, `routers/auth.py`,
-`routers/users.py`, and `alembic/`. The planned layout is in `../CLAUDE.md`.
-Update this tree as those files land.
+Still to come for auth: `auth/`, `routers/auth.py`, `routers/users.py` (see
+`../CLAUDE.md`). Update this tree as those files land.
+
+## Database & migrations
+
+- Migrations run automatically on every Render deploy: the Docker `CMD` runs
+  `alembic upgrade head` before starting uvicorn. If a migration fails, the new
+  deploy fails and Render keeps the previous one live.
+- New migration: change `models.py`, then write the migration in
+  `alembic/versions/`. Don't autogenerate against `DATABASE_URL` (that's prod);
+  `tests/test_db.py::test_migrations_match_models` fails if models and
+  migrations drift apart.
+- Preview a migration's SQL without connecting: `alembic upgrade head --sql`.
+- Keep Python 3.9-compatible syntax (`Optional[X]`, not `X | None`) in models:
+  the local venv is 3.9 while Docker is 3.12.
 
 Env vars: `ALPACA_API_KEY_ID`, `ALPACA_SECRET_KEY`, `DATABASE_URL`,
 `JWT_SECRET`, `APPLE_BUNDLE_ID`.

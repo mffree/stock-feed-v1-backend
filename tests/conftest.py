@@ -4,6 +4,9 @@ import os
 # is instantiated at import time.
 os.environ.setdefault("ALPACA_API_KEY_ID", "test-key-id")
 os.environ.setdefault("ALPACA_SECRET_KEY", "test-secret-key")
+# Forced (not setdefault): DATABASE_URL in .env is the production database,
+# and tests must never touch it.
+os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
 
 import httpx
 import pytest
